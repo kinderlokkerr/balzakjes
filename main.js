@@ -1,6 +1,9 @@
 // Tomb of the Mask Inspired Game
 // p5.js code for beginners with some advanced elements
 
+// Tomb of the Mask Inspired Game
+// p5.js code for beginners with some advanced elements
+
 let player;
 let gridSize = 20;
 let tileSize;
@@ -10,19 +13,18 @@ let walls = [];
 let level = 1;
 let score = 0;
 let gameState = "playing"; // can be "playing", "won", "gameover"
-let playerImg;
+let playerImg; // Hier gebruiken we playerImg (kleine letters)
 let bgColor;
 let wallColor;
 let coinColor;
 let enemyColor;
 
-function preload () {
-    playerImage= loadImage('player.png');
+function preload() {
+    playerImg = loadImage('player.png'); // Nu consistent met kleine letters
 }
 
 function setup() {
-    console.log(playerImg); // Moet een p5.Image object tonen
-    console.log(playerImg.width); // Moet > 0 zijn als geladen
+    console.log(playerImg); // Debug: check of image geladen is
     createCanvas(600, 600);
     tileSize = width / gridSize;
     bgColor = color(30, 30, 40); // Dark blue-gray
@@ -32,7 +34,6 @@ function setup() {
 
     resetGame();
 }
-
 
 function resetGame() {
     // Create player at center
@@ -51,6 +52,8 @@ function resetGame() {
     // Reset game state
     gameState = "playing";
 }
+
+// ... [rest van de functies blijven exact hetzelfde] ...
 
 function generateLevel() {
     // Clear previous level
