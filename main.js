@@ -33,7 +33,7 @@ function resetGame() {
     player = {
         x: Math.floor(gridSize / 2),
         y: Math.floor(gridSize / 2),
-        speed: 10,
+        speed: 0.1,
         moveDir: {x: 0, y: 0},
         lastMove: 0,
         moveDelay: 100 // milliseconds between moves
@@ -93,7 +93,7 @@ function generateLevel() {
         enemies.push({
             x: x,
             y: y,
-            speed: 0.5 + level * 0.1,
+            speed: 0.25 + level * 0.1,
             dir: floor(random(4)) // 0: up, 1: right, 2: down, 3: left
         });
     }
