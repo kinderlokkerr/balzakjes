@@ -84,7 +84,7 @@ function generateLevel() {
     }
 
     // Add random walls
-    for (let i = 0; i < level * 50; i++) {
+    for (let i = 0; i < level * 100; i++) {
         let x = floor(random(2, gridSize-2));
         let y = floor(random(2, gridSize-2));
 
