@@ -116,7 +116,7 @@ function generateLevel() {
         enemies.push({
             x: x,
             y: y,
-            speed: 0.25 + level * 1.1,
+            speed: 0.01 + level * 0.1,
             dir: floor(random(4)) // 0: up, 1: right, 2: down, 3: left
         });
     }
