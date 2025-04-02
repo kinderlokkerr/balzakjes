@@ -59,7 +59,7 @@ function resetGame() {
         speed: 10,
         moveDir: {x: 0, y: 0},
         lastMove: 0,
-        moveDelay: 25 // milliseconds between moves
+        moveDelay: 50 // milliseconds between moves
     };
 
     // Generate level
@@ -84,7 +84,7 @@ function generateLevel() {
     }
 
     // Add random walls
-    for (let i = 0; i < level * 100; i++) {
+    for (let i = 0; i < level * 80; i++) {
         let x = floor(random(2, gridSize-2));
         let y = floor(random(2, gridSize-2));
 
