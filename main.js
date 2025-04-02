@@ -33,10 +33,10 @@ function resetGame() {
     player = {
         x: Math.floor(gridSize / 2),
         y: Math.floor(gridSize / 2),
-        speed: 0.1,
+        speed: 10,
         moveDir: {x: 0, y: 0},
         lastMove: 0,
-        moveDelay: 100 // milliseconds between moves
+        moveDelay: 10 // milliseconds between moves
     };
 
     // Generate level
