@@ -17,7 +17,7 @@ let coinColor;
 let enemyColor;
 
 function preload () {
-    PlayerImage= loadImage('/MacintoshHD/users/finnmeddens/player.png');
+    PlayerImage= loadImage('/MacintoshHD/users/finnmeddens/WebstormProjects/untitled/player.png');
 }
 
 
