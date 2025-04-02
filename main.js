@@ -1,9 +1,6 @@
 // Tomb of the Mask Inspired Game
 // p5.js code for beginners with some advanced elements
 
-// Tomb of the Mask Inspired Game
-// p5.js code for beginners with some advanced elements
-
 let player;
 let gridSize = 20;
 let tileSize;
@@ -13,19 +10,38 @@ let walls = [];
 let level = 1;
 let score = 0;
 let gameState = "playing"; // can be "playing", "won", "gameover"
-let playerImg; // Hier gebruiken we playerImg (kleine letters)
+let playerImg;
 let bgColor;
 let wallColor;
 let coinColor;
 let enemyColor;
+let imageLoaded = false;
 
 function preload() {
-    playerImg = loadImage('player.png'); // Nu consistent met kleine letters
+    playerImg = loadImage(
+        'player.png',
+        () => {
+            console.log("Player image loaded successfully");
+            imageLoaded = true;
+        },
+        () => {
+            console.error("Failed to load player image");
+            imageLoaded = false;
+        }
+    );
 }
 
 function setup() {
-    console.log(playerImg); // Debug: check of image geladen is
     createCanvas(600, 600);
+
+    // Debug image loading
+    console.log("Player image status:", playerImg);
+    if (playerImg) {
+        console.log("Image dimensions:", playerImg.width, "x", playerImg.height);
+    } else {
+        console.error("Player image not loaded");
+    }
+
     tileSize = width / gridSize;
     bgColor = color(30, 30, 40); // Dark blue-gray
     wallColor = color(70, 70, 90); // Gray-blue
@@ -52,8 +68,6 @@ function resetGame() {
     // Reset game state
     gameState = "playing";
 }
-
-// ... [rest van de functies blijven exact hetzelfde] ...
 
 function generateLevel() {
     // Clear previous level
@@ -148,29 +162,24 @@ function draw() {
         );
     }
 
-    // Draw player
-    if (playerImg && playerImg.width > 0) { // Betere check of image geladen is
-        imageMode(CENTER);
-        image(
-            playerImg,
-            player.x * tileSize + tileSize / 2,
-            player.y * tileSize + tileSize / 2,
-            tileSize * 0.8,
-            tileSize * 0.8
-        );
+    // Draw player with improved image loading check
+    if (imageLoaded && playerImg && playerImg.width > 0) {
+        try {
+            imageMode(CENTER);
+            image(
+                playerImg,
+                player.x * tileSize + tileSize / 2,
+                player.y * tileSize + tileSize / 2,
+                tileSize * 0.8,
+                tileSize * 0.8
+            );
+        } catch (e) {
+            console.error("Error drawing player image:", e);
+            drawPlayerFallback();
+        }
     } else {
-        // Betere fallback
-        fill(255, 215, 0);
-        rect(
-            player.x * tileSize + tileSize * 0.1,
-            player.y * tileSize + tileSize * 0.1,
-            tileSize * 0.8,
-            tileSize * 0.8,
-            5
-        );
-        console.log("Player image not loaded, using rectangle instead");
+        drawPlayerFallback();
     }
-
 
     // Update and move entities
     if (gameState === "playing") {
@@ -188,6 +197,18 @@ function draw() {
     } else if (gameState === "won") {
         drawWinScreen();
     }
+}
+
+function drawPlayerFallback() {
+    console.log("Using fallback player drawing");
+    fill(255, 215, 0); // Gold color
+    rect(
+        player.x * tileSize + tileSize * 0.1,
+        player.y * tileSize + tileSize * 0.1,
+        tileSize * 0.8,
+        tileSize * 0.8,
+        5
+    );
 }
 
 function updatePlayer() {
@@ -342,7 +363,7 @@ function drawWinScreen() {
     textSize(24);
     text(`Final Score: ${score}`, width/2, height/2 + 20);
 
-    // Restart instructions bluh  bluh
+    // Restart instructions
     textSize(18);
     text("Press R to restart", width/2, height/2 + 60);
 }
