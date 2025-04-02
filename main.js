@@ -155,8 +155,18 @@ function draw() {
             player.y * tileSize + tileSize / 2,
             tileSize * 0.8,
             tileSize * 0.8
+        );} else {
+        // Backup
+        fill(255, 215, 0);
+        rect(
+            player.x * tileSize + tileSize * 0.1,
+            player.y * tileSize + tileSize * 0.1,
+            tileSize * 0.8,
+            tileSize * 0.8,
+            5
         );
     }
+
 
     // Update and move entities
     if (gameState === "playing") {
