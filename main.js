@@ -17,14 +17,13 @@ let coinColor;
 let enemyColor;
 
 function preload () {
-    PlayerImage= loadImage('player.png');
+    playerImage= loadImage('player.png');
 }
 
 
 function setup() {
     createCanvas(600, 600);
     tileSize = width / gridSize;
-   // playerColor = color(255, 215, 0); // Gold
     bgColor = color(30, 30, 40); // Dark blue-gray
     wallColor = color(70, 70, 90); // Gray-blue
     coinColor = color(255, 255, 100); // Light yellow
@@ -146,7 +145,6 @@ function draw() {
     }
 
     // Draw player
-    fill(playerColor);
     if (playerImg) {
         imageMode(CENTER);
         image(
