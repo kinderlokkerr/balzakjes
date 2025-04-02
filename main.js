@@ -319,7 +319,7 @@ function drawWinScreen() {
     textSize(24);
     text(`Final Score: ${score}`, width/2, height/2 + 20);
 
-    // Restart instructions
+    // Restart instructions bluh bluh bluh
     textSize(18);
     text("Press R to restart", width/2, height/2 + 60);
 }
