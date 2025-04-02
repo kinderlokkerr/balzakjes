@@ -33,7 +33,7 @@ function resetGame() {
     player = {
         x: Math.floor(gridSize / 2),
         y: Math.floor(gridSize / 2),
-        speed: 1,
+        speed: 4,
         moveDir: {x: 0, y: 0},
         lastMove: 0,
         moveDelay: 100 // milliseconds between moves
