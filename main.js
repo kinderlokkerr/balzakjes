@@ -1,239 +1,156 @@
 // Tomb of the Mask Inspired Game
 // p5.js code for beginners with some advanced elements
 
+// Tomb of the Mask with Debugging
 let player;
-let gridSize = 20;
+let gridSize = 21; // Moet oneven zijn voor goed doolhof
 let tileSize;
 let coins = [];
 let enemies = [];
 let walls = [];
 let level = 1;
 let score = 0;
-let gameState = "playing"; // can be "playing", "won", "gameover"
+let gameState = "playing";
 let playerImg;
-let bgColor;
-let wallColor;
-let coinColor;
-let enemyColor;
-let imageLoaded = false;
+let debugMessage = "Game initializing...";
+
+// Kleuren
+const colors = {
+    bg: [30, 30, 40],
+    wall: [70, 70, 90],
+    coin: [255, 255, 100],
+    enemy: [255, 50, 50],
+    player: [255, 215, 0]
+};
 
 function preload() {
-    playerImg = loadImage(
-        'player.png',
-        () => {
-            console.log("Player image loaded successfully");
-            imageLoaded = true;
-        },
-        () => {
-            console.error("Failed to load player image");
-            imageLoaded = false;
-        }
-    );
+    try {
+        playerImg = loadImage('player.png',
+            () => debugMessage = "Image loaded successfully",
+            () => debugMessage = "Error loading image"
+        );
+    } catch (e) {
+        debugMessage = "Preload error: " + e;
+    }
 }
 
 function setup() {
     createCanvas(600, 600);
-
-    // Debug image loading
-    console.log("Player image status:", playerImg);
-    if (playerImg) {
-        console.log("Image dimensions:", playerImg.width, "x", playerImg.height);
-    } else {
-        console.error("Player image not loaded");
-    }
-
     tileSize = width / gridSize;
-    bgColor = color(30, 30, 40); // Dark blue-gray
-    wallColor = color(70, 70, 90); // Gray-blue
-    coinColor = color(255, 255, 100); // Light yellow
-    enemyColor = color(255, 50, 50); // Red
+
+    // Debug console
+    console.log("Setup started");
+    console.log("Image status:", playerImg);
 
     resetGame();
+    debugMessage = "Game ready - Use arrow keys";
 }
 
 function resetGame() {
-    // Create player at center
-    player = {
-        x: Math.floor(gridSize / 2),
-        y: Math.floor(gridSize / 2),
-        speed: 10,
-        moveDir: {x: 0, y: 0},
-        lastMove: 0,
-        moveDelay: 25 // milliseconds between moves
-    };
-
-    // Generate level
-    generateLevel();
-
-    // Reset game state
-    gameState = "playing";
-}
-
-function generateMaze(x, y) {
-    maze[y][x] = 0; // Mark current cell as path
-
-    // Shuffle directions
-    let dirs = shuffleArray([...directions]);
-
-    for (let dir of dirs) {
-        let nx = x + dir.x;
-        let ny = y + dir.y;
-
-        if (nx > 0 && nx < gridSize-1 && ny > 0 && ny < gridSize-1 && maze[ny][nx] === 1) {
-            // Carve path
-            maze[y + dir.y/2][x + dir.x/2] = 0;
-            generateMaze(nx, ny);
-        }
-    }
-}
-
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-
-function generateCoins() {
-    coins = [];
-    let pathCells = [];
-
-    // Find all path cells
-    for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x < gridSize; x++) {
-            if (maze[y][x] === 0 && !(x === player.x && y === player.y)) {
-                pathCells.push({x: x, y: y});
+    try {
+        // Initialize maze
+        walls = [];
+        for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+                if (x === 0 || y === 0 || x === gridSize-1 || y === gridSize-1 ||
+                    (x % 2 === 0 && y % 2 === 0)) {
+                    walls.push({x, y});
+                }
             }
         }
-    }
 
-    // Place coins along the path
-    let coinCount = min(level * 5, floor(pathCells.length * 0.3));
-    for (let i = 0; i < coinCount; i++) {
-        let index = floor(random(pathCells.length));
-        let pos = pathCells.splice(index, 1)[0];
-        coins.push({x: pos.x, y: pos.y, value: 10});
-    }
-}
+        // Simple starting pattern for debugging
+        walls = walls.filter(w =>
+            !(w.x === 1 && w.y === 1) &&
+            !(w.x === 2 && w.y === 1) &&
+            !(w.x === 1 && w.y === 2)
+        );
 
-function generateEnemies() {
-    enemies = [];
-    let pathCells = [];
+        player = {
+            x: 1,
+            y: 1,
+            speed: 1,
+            moveDir: {x: 0, y: 0}
+        };
 
-    // Find path cells far from player
-    for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x < gridSize; x++) {
-            if (maze[y][x] === 0 && dist(x, y, player.x, player.y) > 10) {
-                pathCells.push({x: x, y: y});
-            }
-        }
-    }
+        // Eenvoudige testcoins
+        coins = [{x: 3, y: 1, value: 10}];
+        enemies = [];
 
-    // Place enemies
-    let enemyCount = min(level, floor(pathCells.length * 0.1));
-    for (let i = 0; i < enemyCount; i++) {
-        let index = floor(random(pathCells.length));
-        let pos = pathCells.splice(index, 1)[0];
-        enemies.push({
-            x: pos.x,
-            y: pos.y,
-            speed: 0.2 + level * 0.05,
-            dir: floor(random(4))
-        });
+        gameState = "playing";
+        debugMessage = "Level reset";
+    } catch (e) {
+        debugMessage = "Reset error: " + e;
     }
 }
 
 function draw() {
-    background(bgColor);
+    try {
+        // Eenvoudige achtergrond
+        background(colors.bg);
 
-    // Draw walls
-    fill(wallColor);
-    noStroke();
-    for (let wall of walls) {
-        rect(wall.x * tileSize, wall.y * tileSize, tileSize, tileSize);
-    }
+        // Teken muren
+        fill(colors.wall);
+        walls.forEach(w => rect(w.x * tileSize, w.y * tileSize, tileSize, tileSize));
 
-    // Draw coins
-    fill(coinColor);
-    for (let coin of coins) {
-        ellipse(
-            coin.x * tileSize + tileSize/2,
-            coin.y * tileSize + tileSize/2,
+        // Teken munten
+        fill(colors.coin);
+        coins.forEach(c => ellipse(
+            c.x * tileSize + tileSize/2,
+            c.y * tileSize + tileSize/2,
             tileSize/2
-        );
+        ));
+
+        // Teken speler
+        if (playerImg && playerImg.width > 0) {
+            imageMode(CENTER);
+            image(playerImg,
+                player.x * tileSize + tileSize/2,
+                player.y * tileSize + tileSize/2,
+                tileSize * 0.8,
+                tileSize * 0.8
+            );
+        } else {
+            fill(colors.player);
+            rect(
+                player.x * tileSize + tileSize * 0.1,
+                player.y * tileSize + tileSize * 0.1,
+                tileSize * 0.8,
+                tileSize * 0.8,
+                5
+            );
+        }
+
+        // Debug info
+        fill(255);
+        textSize(12);
+        text(debugMessage, 10, 20);
+        text(`Player: ${player.x},${player.y}`, 10, 40);
+        text(`State: ${gameState}`, 10, 60);
+
+    } catch (e) {
+        debugMessage = "Draw error: " + e;
+        console.error("Draw error:", e);
     }
-
-    // Draw enemies
-    fill(enemyColor);
-    for (let enemy of enemies) {
-        ellipse(
-            enemy.x * tileSize + tileSize/2,
-            enemy.y * tileSize + tileSize/2,
-            tileSize * 0.8
-        );
-    }
-
-    // Draw player
-    if (playerImg && playerImg.width > 0) {
-        imageMode(CENTER);
-        image(
-            playerImg,
-            player.x * tileSize + tileSize/2,
-            player.y * tileSize + tileSize/2,
-            tileSize * 0.8,
-            tileSize * 0.8
-        );
-    } else {
-        fill(255, 215, 0);
-        rect(
-            player.x * tileSize + tileSize * 0.1,
-            player.y * tileSize + tileSize * 0.1,
-            tileSize * 0.8,
-            tileSize * 0.8,
-            5
-        );
-    }
-
-    // Update game state
-    if (gameState === "playing") {
-        updatePlayer();
-        updateEnemies();
-        checkCollisions();
-    }
-
-    // Draw UI
-    drawUI();
-
-    // Game states
-    if (gameState === "gameover") drawGameOver();
-    if (gameState === "won") drawWinScreen();
 }
-function drawPlayerFallback() {
-    console.log("Using fallback player drawing");
-    fill(255, 215, 0); // Gold color
-    rect(
-        player.x * tileSize + tileSize * 0.1,
-        player.y * tileSize + tileSize * 0.1,
-        tileSize * 0.8,
-        tileSize * 0.8,
-        5
-    );
+
+function keyPressed() {
+    if (keyCode === UP_ARROW) player.moveDir = {x: 0, y: -1};
+    else if (keyCode === RIGHT_ARROW) player.moveDir = {x: 1, y: 0};
+    else if (keyCode === DOWN_ARROW) player.moveDir = {x: 0, y: 1};
+    else if (keyCode === LEFT_ARROW) player.moveDir = {x: -1, y: 0};
+    return false;
 }
 
 function updatePlayer() {
-    // Continuous movement when key is held
-    if (millis() - player.lastMove > player.moveDelay) {
-        let newX = player.x + player.moveDir.x;
-        let newY = player.y + player.moveDir.y;
+    if (frameCount % 10 === 0) { // Vertraagde beweging
+        const newX = player.x + player.moveDir.x;
+        const newY = player.y + player.moveDir.y;
 
-        if (!isWall(newX, newY)) {
+        if (!walls.some(w => w.x === newX && w.y === newY)) {
             player.x = newX;
             player.y = newY;
-            player.lastMove = millis();
-        } else {
-            // Stop when hitting a wall
-            player.moveDir = {x: 0, y: 0};
+            debugMessage = `Moving to ${newX},${newY}`;
         }
     }
 }
