@@ -20,8 +20,9 @@ function preload () {
     playerImage= loadImage('player.png');
 }
 
-
 function setup() {
+    console.log(playerImg); // Moet een p5.Image object tonen
+    console.log(playerImg.width); // Moet > 0 zijn als geladen
     createCanvas(600, 600);
     tileSize = width / gridSize;
     bgColor = color(30, 30, 40); // Dark blue-gray
@@ -145,7 +146,7 @@ function draw() {
     }
 
     // Draw player
-    if (playerImg) {
+    if (playerImg && playerImg.width > 0) { // Betere check of image geladen is
         imageMode(CENTER);
         image(
             playerImg,
@@ -153,8 +154,9 @@ function draw() {
             player.y * tileSize + tileSize / 2,
             tileSize * 0.8,
             tileSize * 0.8
-        );} else {
-        // Backup
+        );
+    } else {
+        // Betere fallback
         fill(255, 215, 0);
         rect(
             player.x * tileSize + tileSize * 0.1,
@@ -163,6 +165,7 @@ function draw() {
             tileSize * 0.8,
             5
         );
+        console.log("Player image not loaded, using rectangle instead");
     }
 
 
