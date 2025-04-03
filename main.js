@@ -1,6 +1,6 @@
 // Tomb of the Mask - Met Volledige Muurcontrole
 let player;
-const gridSize = 21; // Oneven getal voor beter doolhof
+const gridSize = 20; // Oneven getal voor beter doolhof
 let tileSize;
 let coins = [];
 let enemies = [];
