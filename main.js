@@ -1,5 +1,4 @@
-// Tomb of the Mask Inspired Game
-// p5.js code for beginners with some advanced elements
+// Tomb of the Mask
 
 let player;
 let gridSize = 20;
@@ -9,7 +8,7 @@ let enemies = [];
 let walls = [];
 let level = 1;
 let score = 0;
-let gameState = "playing"; // can be "playing", "won", "gameover"
+let gameState = "playing";
 let playerImg;
 let bgColor;
 let wallColor;
@@ -34,7 +33,7 @@ function preload() {
 function setup() {
     createCanvas(600, 600);
 
-    // Debug image loading
+
     console.log("Player image status:", playerImg);
     if (playerImg) {
         console.log("Image dimensions:", playerImg.width, "x", playerImg.height);
@@ -43,39 +42,37 @@ function setup() {
     }
 
     tileSize = width / gridSize;
-    bgColor = color(30, 30, 40); // Dark blue-gray
-    wallColor = color(70, 70, 90); // Gray-blue
-    coinColor = color(255, 255, 100); // Light yellow
-    enemyColor = color(255, 50, 50); // Red
+    bgColor = color(30, 30, 40);
+    wallColor = color(70, 70, 90);
+    coinColor = color(255, 255, 100);
+    enemyColor = color(255, 50, 50);
 
     resetGame();
 }
 
 function resetGame() {
-    // Create player at center
     player = {
         x: Math.floor(gridSize / 2),
         y: Math.floor(gridSize / 2),
         speed: 10,
         moveDir: {x: 0, y: 0},
         lastMove: 0,
-        moveDelay: 50 // milliseconds between moves
+        moveDelay: 50
     };
 
-    // Generate level
+
     generateLevel();
 
-    // Reset game state
+
     gameState = "playing";
 }
 
 function generateLevel() {
-    // Clear previous level
     walls = [];
     coins = [];
     enemies = [];
 
-    // Create border walls
+
     for (let i = 0; i < gridSize; i++) {
         walls.push({x: i, y: 0});
         walls.push({x: i, y: gridSize-1});
@@ -83,18 +80,18 @@ function generateLevel() {
         walls.push({x: gridSize-1, y: i});
     }
 
-    // Add random walls
+
     for (let i = 0; i < level * 80; i++) {
         let x = floor(random(2, gridSize-2));
         let y = floor(random(2, gridSize-2));
 
-        // Don't place walls on player or next to player
+
         if (!(abs(x - player.x) <= 1 && abs(y - player.y) <= 1)) {
             walls.push({x: x, y: y});
         }
     }
 
-    // Add coins
+
     for (let i = 0; i < level * 5; i++) {
         let x, y;
         do {
@@ -105,7 +102,7 @@ function generateLevel() {
         coins.push({x: x, y: y, value: 10});
     }
 
-    // Add enemies
+
     for (let i = 0; i < level; i++) {
         let x, y;
         do {
@@ -117,7 +114,7 @@ function generateLevel() {
             x: x,
             y: y,
             speed: 0.01 + level * 0.1,
-            dir: floor(random(4)) // 0: up, 1: right, 2: down, 3: left
+            dir: floor(random(4))
         });
     }
 }
@@ -125,24 +122,23 @@ function generateLevel() {
 function draw() {
     background(bgColor);
 
-    // Draw grid
+
     for (let x = 0; x < gridSize; x++) {
         for (let y = 0; y < gridSize; y++) {
-            // Draw subtle grid lines
             noFill();
             stroke(60);
             rect(x * tileSize, y * tileSize, tileSize, tileSize);
         }
     }
 
-    // Draw walls
+
     fill(wallColor);
     noStroke();
     for (let wall of walls) {
         rect(wall.x * tileSize, wall.y * tileSize, tileSize, tileSize);
     }
 
-    // Draw coins
+
     fill(coinColor);
     for (let coin of coins) {
         ellipse(
@@ -152,7 +148,7 @@ function draw() {
         );
     }
 
-    // Draw enemies
+
     fill(enemyColor);
     for (let enemy of enemies) {
         ellipse(
@@ -162,7 +158,7 @@ function draw() {
         );
     }
 
-    // Draw player with improved image loading check
+
     if (imageLoaded && playerImg && playerImg.width > 0) {
         try {
             imageMode(CENTER);
@@ -181,17 +177,17 @@ function draw() {
         drawPlayerFallback();
     }
 
-    // Update and move entities
+
     if (gameState === "playing") {
         updatePlayer();
         updateEnemies();
         checkCollisions();
     }
 
-    // Draw UI
+
     drawUI();
 
-    // Game over or win screens
+
     if (gameState === "gameover") {
         drawGameOver();
     } else if (gameState === "won") {
@@ -201,7 +197,7 @@ function draw() {
 
 function drawPlayerFallback() {
     console.log("Using fallback player drawing");
-    fill(255, 215, 0); // Gold color
+    fill(255, 215, 0);
     rect(
         player.x * tileSize + tileSize * 0.1,
         player.y * tileSize + tileSize * 0.1,
@@ -212,7 +208,6 @@ function drawPlayerFallback() {
 }
 
 function updatePlayer() {
-    // Continuous movement when key is held
     if (millis() - player.lastMove > player.moveDelay) {
         let newX = player.x + player.moveDir.x;
         let newY = player.y + player.moveDir.y;
@@ -222,7 +217,6 @@ function updatePlayer() {
             player.y = newY;
             player.lastMove = millis();
         } else {
-            // Stop when hitting a wall
             player.moveDir = {x: 0, y: 0};
         }
     }
@@ -230,29 +224,25 @@ function updatePlayer() {
 
 function updateEnemies() {
     for (let enemy of enemies) {
-        // Simple AI: move in current direction until hitting a wall, then change direction
         let newX = enemy.x;
         let newY = enemy.y;
 
-        // Calculate movement based on direction
         if (enemy.dir === 0) newY -= enemy.speed; // Up
         else if (enemy.dir === 1) newX += enemy.speed; // Right
         else if (enemy.dir === 2) newY += enemy.speed; // Down
         else if (enemy.dir === 3) newX -= enemy.speed; // Left
 
-        // Check if new position is valid (not a wall)
+
         if (!isWall(floor(newX), floor(newY))) {
             enemy.x = newX;
             enemy.y = newY;
         } else {
-            // Change direction when hitting a wall
             enemy.dir = floor(random(4));
         }
     }
 }
 
 function checkCollisions() {
-    // Check coin collection
     for (let i = coins.length - 1; i >= 0; i--) {
         if (dist(player.x, player.y, coins[i].x, coins[i].y) < 1) {
             score += coins[i].value;
@@ -260,19 +250,17 @@ function checkCollisions() {
         }
     }
 
-    // Check enemy collisions
     for (let enemy of enemies) {
         if (dist(player.x, player.y, enemy.x, enemy.y) < 1) {
             gameState = "gameover";
         }
     }
 
-    // Check if level is complete (all coins collected)
+
     if (coins.length === 0) {
         level++;
         generateLevel();
 
-        // Win condition
         if (level > 5) {
             gameState = "won";
         }
@@ -289,7 +277,6 @@ function isWall(x, y) {
 }
 
 function keyPressed() {
-    // Set movement direction based on arrow keys
     if (keyCode === UP_ARROW) {
         player.moveDir = {x: 0, y: -1};
     } else if (keyCode === RIGHT_ARROW) {
@@ -299,71 +286,65 @@ function keyPressed() {
     } else if (keyCode === LEFT_ARROW) {
         player.moveDir = {x: -1, y: 0};
     } else if (key === 'r' || key === 'R') {
-        // Reset game
+
         level = 1;
         score = 0;
         resetGame();
     }
 
-    // Prevent default behavior
     return false;
 }
 
 function drawUI() {
-    // Score display
+
     fill(255);
     textSize(20);
     textAlign(LEFT, TOP);
     text(`Score: ${score}`, 10, 10);
 
-    // Level display
+
     textAlign(RIGHT, TOP);
     text(`Level: ${level}/5`, width - 10, 10);
 
-    // Instructions
+
     textSize(14);
     textAlign(LEFT, BOTTOM);
     text("Arrow keys to move", 10, height - 10);
 }
 
 function drawGameOver() {
-    // Dark overlay
     fill(0, 0, 0, 200);
     rect(0, 0, width, height);
 
-    // Game over text
+
     fill(255, 50, 50);
     textSize(48);
     textAlign(CENTER, CENTER);
     text("GAME OVER", width/2, height/2 - 40);
 
-    // Score
+
     fill(255);
     textSize(24);
     text(`Final Score: ${score}`, width/2, height/2 + 20);
 
-    // Restart instructions
+
     textSize(18);
     text("Press R to restart", width/2, height/2 + 60);
 }
 
 function drawWinScreen() {
-    // Dark overlay
     fill(0, 0, 0, 200);
     rect(0, 0, width, height);
 
-    // Win text
     fill(50, 255, 50);
     textSize(48);
     textAlign(CENTER, CENTER);
     text("YOU WON!", width/2, height/2 - 40);
 
-    // Score
     fill(255);
     textSize(24);
     text(`Final Score: ${score}`, width/2, height/2 + 20);
 
-    // Restart instructions
     textSize(18);
     text("Press R to restart", width/2, height/2 + 60);
 }
