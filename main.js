@@ -1,6 +1,6 @@
-// Tomb of the Mask - Verbeterde Versie
+// Tomb of the Mask - Met Volledige Muurcontrole
 let player;
-let gridSize = 20;
+const gridSize = 21; // Oneven getal voor beter doolhof
 let tileSize;
 let coins = [];
 let enemies = [];
@@ -9,7 +9,16 @@ let level = 1;
 let score = 0;
 let gameState = "playing";
 let playerImg;
-let bgColor, wallColor, coinColor, enemyColor;
+
+// Kleuren
+const colors = {
+    bg: [30, 30, 40],
+    wall: [70, 70, 90],
+    coin: [255, 255, 100],
+    enemy: [255, 50, 50],
+    player: [255, 215, 0],
+    text: [255, 255, 255]
+};
 
 function preload() {
     playerImg = loadImage('player.png');
@@ -18,81 +27,150 @@ function preload() {
 function setup() {
     createCanvas(600, 600);
     tileSize = width / gridSize;
-    bgColor = color(30, 30, 40);
-    wallColor = color(70, 70, 90);
-    coinColor = color(255, 255, 100);
-    enemyColor = color(255, 50, 50);
     resetGame();
 }
 
 function resetGame() {
-    // Player start positie
-    player = {
-        x: Math.floor(gridSize / 2),
-        y: Math.floor(gridSize / 2),
-        speed: 5,
-        moveDir: {x: 0, y: 0},
-        lastMove: 0,
-        moveDelay: 50
-    };
+    // Initialize maze grid (1 = wall, 0 = path)
+    let maze = Array(gridSize).fill().map(() => Array(gridSize).fill(1));
 
-    generateLevel();
-    gameState = "playing";
-}
+    // Zorg voor een basispad
+    createMainPath(maze);
 
-function generateLevel() {
+    // Voeg willekeurige muren toe (inclusief buitenrand)
+    addRandomWalls(maze);
+
+    // Convert maze to walls
     walls = [];
-    coins = [];
-    enemies = [];
-
-    // Buitenmuren
-    for (let i = 0; i < gridSize; i++) {
-        walls.push({x: i, y: 0});
-        walls.push({x: i, y: gridSize-1});
-        walls.push({x: 0, y: i});
-        walls.push({x: gridSize-1, y: i});
-    }
-
-    // Willekeurige binnenmuren
-    for (let i = 0; i < level * 80; i++) {
-        let x = floor(random(2, gridSize-2));
-        let y = floor(random(2, gridSize-2));
-
-        if (!(abs(x - player.x) <= 1 && abs(y - player.y) <= 1)) {
-            walls.push({x: x, y: y});
+    for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+            if (maze[y][x] === 1) {
+                walls.push({x, y});
+            }
         }
     }
 
-    // Munten
-    for (let i = 0; i < level * 5; i++) {
-        let x, y;
-        do {
-            x = floor(random(1, gridSize-1));
-            y = floor(random(1, gridSize-1));
-        } while (isWall(x, y) || (x === player.x && y === player.y));
+    // Player start position (garandeer vrije start)
+    player = {
+        x: 1,
+        y: 1,
+        moveDir: {x: 0, y: 0},
+        lastMove: 0,
+        moveDelay: 100
+    };
 
-        coins.push({x: x, y: y, value: 10});
+    generateCoins(maze);
+    generateEnemies(maze);
+    gameState = "playing";
+}
+
+function createMainPath(maze) {
+    // Recursive backtracker voor hoofdpad
+    let stack = [{x:1, y:1}];
+    maze[1][1] = 0;
+
+    const dirs = [{x:0,y:-2},{x:2,y:0},{x:0,y:2},{x:-2,y:0}];
+
+    while (stack.length > 0) {
+        let current = stack[stack.length-1];
+        let neighbors = [];
+
+        for (let dir of dirs) {
+            let nx = current.x + dir.x;
+            let ny = current.y + dir.y;
+
+            if (nx > 0 && nx < gridSize-1 && ny > 0 && ny < gridSize-1 && maze[ny][nx] === 1) {
+                neighbors.push({x:nx, y:ny, dir:dir});
+            }
+        }
+
+        if (neighbors.length > 0) {
+            let next = random(neighbors);
+            maze[current.y + next.dir.y/2][current.x + next.dir.x/2] = 0;
+            maze[next.y][next.x] = 0;
+            stack.push({x:next.x, y:next.y});
+        } else {
+            stack.pop();
+        }
+    }
+}
+
+function addRandomWalls(maze) {
+    // Voeg willekeurige muren toe (inclusief buitenrand)
+    for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+            // 30% kans op muur, behalve waar al paden zijn
+            if (maze[y][x] === 1 && random() < 0.3) {
+                // Zorg dat we geen geïsoleerde gebieden maken
+                let openNeighbors = 0;
+                if (x > 0 && maze[y][x-1] === 0) openNeighbors++;
+                if (x < gridSize-1 && maze[y][x+1] === 0) openNeighbors++;
+                if (y > 0 && maze[y-1][x] === 0) openNeighbors++;
+                if (y < gridSize-1 && maze[y+1][x] === 0) openNeighbors++;
+
+                if (openNeighbors < 3) { // Max 2 open buren
+                    maze[y][x] = 1;
+                }
+            }
+        }
     }
 
-    // Vijanden - verbeterde plaatsing
-    for (let i = 0; i < level; i++) {
-        let x, y;
-        let attempts = 0;
-        do {
-            x = floor(random(1, gridSize-1));
-            y = floor(random(1, gridSize-1));
-            attempts++;
-            // Stop na 100 pogingen om oneindige lus te voorkomen
-            if (attempts > 100) break;
-        } while (isWall(x, y) || (dist(x, y, player.x, player.y) < 5));
+    // Buitenrand altijd dicht (maar niet alle cellen)
+    for (let i = 0; i < gridSize; i++) {
+        if (random() < 0.7) maze[0][i] = 1; // Bovenkant
+        if (random() < 0.7) maze[gridSize-1][i] = 1; // Onderkant
+        if (random() < 0.7) maze[i][0] = 1; // Linkerkant
+        if (random() < 0.7) maze[i][gridSize-1] = 1; // Rechterkant
+    }
+}
 
+function generateCoins(maze) {
+    coins = [];
+    const pathCells = [];
+
+    // Verzamel alle pad cellen
+    for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+            if (maze[y][x] === 0 && !(x === player.x && y === player.y)) {
+                pathCells.push({x, y});
+            }
+        }
+    }
+
+    // Plaats munten
+    const coinCount = min(level * 5, floor(pathCells.length * 0.3));
+    for (let i = 0; i < coinCount; i++) {
+        const index = floor(random(pathCells.length));
+        const pos = pathCells.splice(index, 1)[0];
+        coins.push({x: pos.x, y: pos.y, value: 10});
+    }
+}
+
+function generateEnemies(maze) {
+    enemies = [];
+    const pathCells = [];
+
+    // Verzamel pad cellen ver van speler
+    for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+            if (maze[y][x] === 0 && dist(x, y, player.x, player.y) > 5) {
+                pathCells.push({x, y});
+            }
+        }
+    }
+
+    // Plaats vijanden
+    const enemyCount = min(level, 5);
+    for (let i = 0; i < enemyCount; i++) {
+        const index = floor(random(pathCells.length));
+        const pos = pathCells.splice(index, 1)[0];
         enemies.push({
-            x: x,
-            y: y,
-            speed: 0.1 + level * 0.05, // Langzamere start
+            x: pos.x,
+            y: pos.y,
+            speed: 0.2 + level * 0.05,
             dir: floor(random(4)),
             lastMove: 0,
-            moveDelay: 250 // Vertraging tussen bewegingen
+            moveDelay: 500
         });
     }
 }
