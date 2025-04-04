@@ -65,7 +65,7 @@ function generateLevel() {
         walls.push({x: gridSize-1, y: i});
     }
 
-    for (let i = 0; i < level * 80; i++) {
+    for (let i = 0; i < level * 50 + 50; i++) {
         let x = floor(random(2, gridSize-2));
         let y = floor(random(2, gridSize-2));
         if (!(abs(x - player.x) <= 1 && abs(y - player.y) <= 1)) {
