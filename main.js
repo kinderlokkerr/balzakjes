@@ -10,6 +10,8 @@ let gameState = "playing";
 let playerImg;
 let bgColor, wallColor, coinColor, enemyColor;
 let debugInfo = "Initializing...";
+let wallHits = {};
+let lastHitTime = 0;
 
 function preload() {
     try {
@@ -42,6 +44,8 @@ function resetGame() {
             lastMove: 0,
             moveDelay: 50
         };
+        wallHits = {};
+        lastHitTime = 0;
         generateLevel();
         gameState = "playing";
     } catch (e) {
@@ -90,7 +94,7 @@ function generateLevel() {
         enemies.push({
             x: x,
             y: y,
-            speed: 0.1 + level * 0.05,
+            speed: 0.35 + level * 0.05,
             dir: floor(random(4)),
             lastMove: 0,
             moveDelay: 100
@@ -254,12 +258,16 @@ function isWall(x, y) {
 
 function keyPressed() {
     if (keyCode === UP_ARROW) {
+        tryHitWall(player.x, player.y - 1);
         player.moveDir = {x: 0, y: -1};
     } else if (keyCode === RIGHT_ARROW) {
+        tryHitWall(player.x + 1, player.y);
         player.moveDir = {x: 1, y: 0};
     } else if (keyCode === DOWN_ARROW) {
+        tryHitWall(player.x, player.y + 1);
         player.moveDir = {x: 0, y: 1};
     } else if (keyCode === LEFT_ARROW) {
+        tryHitWall(player.x - 1, player.y);
         player.moveDir = {x: -1, y: 0};
     } else if (key === 'r' || key === 'R') {
         level = 1;
@@ -267,6 +275,39 @@ function keyPressed() {
         resetGame();
     }
     return false;
+}
+
+function tryHitWall(x, y) {
+    const now = millis();
+    const wallKey = `${x},${y}`;
+
+    if (!isWall(x, y)) return;
+
+    if (now - lastHitTime > 1000) {
+        wallHits = {};
+    }
+
+    wallHits[wallKey] = (wallHits[wallKey] || 0) + 1;
+    lastHitTime = now;
+
+    if (wallHits[wallKey] >= 4) {
+        removeWall(x, y);
+        wallHits[wallKey] = 0;
+        debugInfo = `Wall broken at ${x},${y}!`;
+    } else {
+        debugInfo = `Wall hit: ${wallHits[wallKey]}/4 at ${x},${y}`;
+    }
+}
+
+function removeWall(x, y) {
+    for (let i = walls.length - 1; i >= 0; i--) {
+        if (walls[i].x === x && walls[i].y === y) {
+            if (x > 0 && x < gridSize - 1 && y > 0 && y < gridSize - 1) {
+                walls.splice(i, 1);
+            }
+            break;
+        }
+    }
 }
 
 function drawUI() {
